@@ -3,6 +3,7 @@ LABEL maintainer="Azure App Services Container Images <appsvc-images@microsoft.c
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        sudo \
         apt-utils \
         unzip \
         openssh-server \
