@@ -13,7 +13,7 @@ RUN apt-get update \
         tcptraceroute \
     && rm -rf /var/lib/apt/lists/*
 
-RUN echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf
+RUN sysctl -w fs.inotify.max_user_watches=1048576
 
 RUN mkdir -p /defaulthome/hostingstart \
     && mkdir -p /home/LogFiles/ \
