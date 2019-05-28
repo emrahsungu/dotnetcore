@@ -12,6 +12,8 @@ RUN apt-get update \
         tcptraceroute \
     && rm -rf /var/lib/apt/lists/*
 
+RUN echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf
+
 RUN mkdir -p /defaulthome/hostingstart \
     && mkdir -p /home/LogFiles/ \
     && echo "root:Docker!" | chpasswd \
