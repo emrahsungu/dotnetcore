@@ -1,44 +1,29 @@
 FROM oryxprod/dotnetcore-2.2:20190422.4
 LABEL maintainer="Azure App Services Container Images <appsvc-images@microsoft.com>"
+COPY bin.zip /tmp
+COPY init_container.sh /bin/
+COPY sshd_config /etc/ssh/
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        apt-utils \
-        unzip \
-        openssh-server \
-        vim \
-        curl \
-        wget \
-        tcptraceroute \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /defaulthome/hostingstart \
-    && mkdir -p /home/LogFiles/ \
-    && echo "root:Docker!" | chpasswd \
-    && echo "cd /home" >> /etc/bash.bashrc
-
-COPY bin.zip /tmp
-RUN unzip -q -o /tmp/bin.zip -d /defaulthome/hostingstart \
-    && rm /tmp/bin.zip
-
-COPY init_container.sh /bin/
-RUN chmod 755 /bin/init_container.sh
+  && apt-get install -y sudo \
+  && apt-get install -y apt-utils --no-install-recommends \
+  && apt-get install -y unzip --no-install-recommends \
+  && mkdir -p /defaulthome/hostingstart \ 
+  && unzip -q -o /tmp/bin.zip -d /defaulthome/hostingstart \
+  && rm /tmp/bin.zip \
+  && echo "root:Docker!" | chpasswd \
+  && echo "cd /home" >> /etc/bash.bashrc \
+  && apt update \
+  && apt install -y --no-install-recommends openssh-server vim curl wget tcptraceroute \
+  && chmod 755 /bin/init_container.sh \
+  && mkdir -p /home/LogFiles/
+RUN echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf
 
 COPY hostingstart.html /defaulthome/hostingstart/wwwroot/
 
-# configure startup
-COPY sshd_config /etc/ssh/
-COPY ssh_setup.sh /tmp
-RUN mkdir -p /opt/startup \
-   && chmod -R +x /opt/startup \
-   && chmod -R +x /tmp/ssh_setup.sh \
-   && (sleep 1;/tmp/ssh_setup.sh 2>&1 > /dev/null) \
-   && rm -rf /tmp/*
+EXPOSE 2222 8080
 
 ENV PORT 8080
-ENV SSH_PORT 2222
-EXPOSE 8080 2222
-
 ENV WEBSITE_ROLE_INSTANCE_ID localRoleInstance
 ENV WEBSITE_INSTANCE_ID localInstance
 ENV PATH ${PATH}:/home/site/wwwroot
